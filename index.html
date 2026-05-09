@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scheda Settimanale — Tracking Carichi</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: #F5F4F0;
+    color: #1a1a1a;
+    padding: 32px 20px 64px;
+  }
+  .page-header {
+    text-align: center;
+    margin-bottom: 36px;
+  }
+  .page-header h1 {
+    font-size: 26px;
+    font-weight: 600;
+    letter-spacing: -0.5px;
+  }
+  .page-header p {
+    font-size: 12px;
+    color: #888;
+    margin-top: 4px;
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 0.06em;
+  }
+
+  /* NAV TABS */
+  .tabs {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-bottom: 28px;
+  }
+  .tab-btn {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 7px 16px;
+    border-radius: 20px;
+    border: 1.5px solid transparent;
+    cursor: pointer;
+    background: #fff;
+    color: #555;
+    border-color: #ddd;
+    transition: all 0.15s;
+  }
+  .tab-btn:hover { opacity: 0.85; }
+  .tab-btn.active { color: #fff; border-color: transparent; }
+
+  .day-panel { display: none; max-width: 860px; margin: 0 auto; }
+  .day-panel.active { display: block; }
+
+  /* DAY CARD */
+  .day-card {
+    border-radius: 16px;
+    overflow: hidden;
+    background: #fff;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.07);
+  }
+  .day-header {
+    padding: 16px 20px 14px;
+  }
+  .day-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    font-family: 'DM Mono', monospace;
+    opacity: 0.65;
+  }
+  .day-title {
+    font-size: 20px;
+    font-weight: 600;
+    margin-top: 2px;
+  }
+  .day-focus {
+    font-size: 12px;
+    opacity: 0.6;
+    margin-top: 2px;
+  }
+  .day-body { padding: 14px 16px 20px; }
+  .section-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin: 16px 0 6px;
+    padding-left: 4px;
+  }
+  .section-label:first-child { margin-top: 0; }
+
+  /* EXERCISE TABLE */
+  .ex-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 2px;
+  }
+  .ex-table thead tr {
+    border-radius: 8px;
+  }
+  .ex-table th {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 6px 8px;
+    text-align: center;
+    opacity: 0.5;
+  }
+  .ex-table th:first-child { text-align: left; padding-left: 10px; }
+  .ex-table tbody tr {
+    border-radius: 8px;
+  }
+  .ex-table td {
+    padding: 0;
+    vertical-align: middle;
+  }
+  .ex-row-wrap {
+    display: flex;
+    align-items: center;
+    border-radius: 9px;
+    margin-bottom: 4px;
+    overflow: hidden;
+  }
+  .ex-name-cell {
+    flex: 1;
+    padding: 9px 10px;
+    min-width: 160px;
+  }
+  .ex-name {
+    font-size: 13px;
+    font-weight: 500;
+  }
+  .ex-sets {
+    font-size: 10px;
+    font-weight: 600;
+    font-family: 'DM Mono', monospace;
+    opacity: 0.5;
+    margin-top: 1px;
+  }
+  .week-cells {
+    display: flex;
+    gap: 4px;
+    padding: 6px 10px 6px 0;
+    align-items: center;
+  }
+  .week-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+  }
+  .week-box label {
+    font-size: 9px;
+    font-weight: 600;
+    font-family: 'DM Mono', monospace;
+    opacity: 0.4;
+    letter-spacing: 0.05em;
+  }
+  .week-box input {
+    width: 58px;
+    height: 30px;
+    border-radius: 6px;
+    border: 1.5px solid rgba(0,0,0,0.1);
+    background: #fff;
+    text-align: center;
+    font-size: 12px;
+    font-family: 'DM Mono', monospace;
+    font-weight: 500;
+    outline: none;
+    color: #111;
+    transition: border-color 0.15s;
+    padding: 0 4px;
+  }
+  .week-box input::placeholder { color: #bbb; font-size: 11px; }
+  .week-box input:focus { border-color: rgba(0,0,0,0.3); }
+
+  /* bullet list */
+  .bullet-list {
+    padding: 4px 4px 4px 20px;
+    background: #f9f9f7;
+    border-radius: 8px;
+    margin-bottom: 4px;
+  }
+  .bullet-list li { font-size: 12px; opacity: 0.65; margin-bottom: 3px; padding: 1px 0; }
+
+  /* cardio pill */
+  .cardio-pill {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 9px;
+    margin-bottom: 4px;
+  }
+  .cardio-pill span:first-child { font-size: 13px; font-weight: 500; flex: 1; }
+  .cardio-pill span.time { font-size: 12px; font-family: 'DM Mono', monospace; opacity: 0.6; }
+
+  /* print */
+  @media print {
+    body { background: #fff; padding: 0; }
+    .tabs { display: none; }
+    .day-panel { display: block !important; margin-bottom: 24px; page-break-inside: avoid; }
+    .day-card { box-shadow: none; border: 1px solid #e0e0e0; }
+    .week-box input { border: 1px solid #ccc; }
+  }
+
+  /* ========== COLORS ========== */
+  /* D1 viola */
+  .d1 .day-header { background: #3C3489; color: #EEEDFE; }
+  .d1 .day-label { color: #AFA9EC; }
+  .d1 .section-label { color: #534AB7; }
+  .d1 .ex-row-wrap { background: #EEEDFE; }
+  .d1 .ex-name { color: #26215C; }
+  .d1 .ex-sets { color: #534AB7; opacity: 1; }
+  .d1 .week-box input:focus { border-color: #534AB7; }
+  .d1 .tab-btn.active, .tab-btn.d1-active { background: #3C3489; }
+
+  /* D2 teal */
+  .d2 .day-header { background: #085041; color: #E1F5EE; }
+  .d2 .day-label { color: #9FE1CB; }
+  .d2 .section-label { color: #0F6E56; }
+  .d2 .ex-row-wrap { background: #E1F5EE; }
+  .d2 .ex-name { color: #04342C; }
+  .d2 .ex-sets { color: #0F6E56; opacity: 1; }
+  .d2 .week-box input:focus { border-color: #0F6E56; }
+
+  /* D3 blue */
+  .d3 .day-header { background: #185FA5; color: #E6F1FB; }
+  .d3 .day-label { color: #85B7EB; }
+  .d3 .section-label { color: #185FA5; }
+  .d3 .ex-row-wrap { background: #E6F1FB; }
+  .d3 .ex-name { color: #042C53; }
+  .d3 .ex-sets { color: #185FA5; opacity: 1; }
+  .d3 .cardio-pill { background: #E6F1FB; color: #042C53; }
+  .d3 .week-box input:focus { border-color: #185FA5; }
+
+  /* D4 green */
+  .d4 .day-header { background: #3B6D11; color: #EAF3DE; }
+  .d4 .day-label { color: #C0DD97; }
+  .d4 .section-label { color: #3B6D11; }
+  .d4 .ex-row-wrap { background: #EAF3DE; }
+  .d4 .ex-name { color: #173404; }
+  .d4 .ex-sets { color: #3B6D11; opacity: 1; }
+  .d4 .cardio-pill { background: #EAF3DE; color: #173404; }
+  .d4 .week-box input:focus { border-color: #3B6D11; }
+
+  /* D5 coral */
+  .d5 .day-header { background: #712B13; color: #FAECE7; }
+  .d5 .day-label { color: #F0997B; }
+  .d5 .section-label { color: #993C1D; }
+  .d5 .ex-row-wrap { background: #FAECE7; }
+  .d5 .ex-name { color: #4A1B0C; }
+  .d5 .ex-sets { color: #993C1D; opacity: 1; }
+  .d5 .week-box input:focus { border-color: #993C1D; }
+
+  /* D6 pink */
+  .d6 .day-header { background: #72243E; color: #FBEAF0; }
+  .d6 .day-label { color: #ED93B1; }
+  .d6 .section-label { color: #993556; }
+  .d6 .ex-row-wrap { background: #FBEAF0; }
+  .d6 .ex-name { color: #4B1528; }
+  .d6 .ex-sets { color: #993556; opacity: 1; }
+  .d6 .week-box input:focus { border-color: #993556; }
+
+  /* D7 gray */
+  .d7 .day-header { background: #444441; color: #F1EFE8; }
+  .d7 .day-label { color: #B4B2A9; }
+  .d7 .section-label { color: #5F5E5A; }
+  .d7 .ex-row-wrap { background: #F1EFE8; }
+  .d7 .ex-name { color: #2C2C2A; }
+
+  /* tab active colors */
+  #tab1.active { background: #3C3489; }
+  #tab2.active { background: #085041; }
+  #tab3.active { background: #185FA5; }
+  #tab4.active { background: #3B6D11; }
+  #tab5.active { background: #712B13; }
+  #tab6.active { background: #72243E; }
+  #tab7.active { background: #444441; }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>Scheda Settimanale</h1>
+  <p>PROGRAMMA 7 GIORNI — TRACKING CARICHI</p>
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+  <button class="tab-btn active" id="tab1" onclick="showDay(1)">G1 · Upper A</button>
+  <button class="tab-btn" id="tab2" onclick="showDay(2)">G2 · Back</button>
+  <button class="tab-btn" id="tab3" onclick="showDay(3)">G3 · Cardio</button>
+  <button class="tab-btn" id="tab4" onclick="showDay(4)">G4 · Legs</button>
+  <button class="tab-btn" id="tab5" onclick="showDay(5)">G5 · Upper B</button>
+  <button class="tab-btn" id="tab6" onclick="showDay(6)">G6 · Arms</button>
+  <button class="tab-btn" id="tab7" onclick="showDay(7)">G7 · Rest</button>
+</div>
+
+<!-- helper macro -->
+<!-- Each exercise row: name, sets label, 4 week inputs -->
+
+<!-- ==================== GIORNO 1 ==================== -->
+<div class="day-panel active d1" id="panel1">
+  <div class="day-card d1">
+    <div class="day-header">
+      <div class="day-label">Giorno 1</div>
+      <div class="day-title">Upper A</div>
+      <div class="day-focus">Chest · Lateral Delts · Biceps</div>
+    </div>
+    <div class="day-body">
+
+      <div class="section-label">Petto</div>
+      <div class="ex-row-wrap">
+        <div class="ex-name-cell"><div class="ex-name">Incline DB Press</div><div class="ex-sets">3 SET</div></div>
+        <div class="week-cells">
+          <div class="week-box"><label>S1</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S2</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S3</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S4</label><input type="text" placeholder="kg × rep"></div>
+        </div>
+      </div>
+      <div class="ex-row-wrap">
+        <div class="ex-name-cell"><div class="ex-name">Incline Smith Press</div><div class="ex-sets">3 SET</div></div>
+        <div class="week-cells">
+          <div class="week-box"><label>S1</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S2</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S3</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S4</label><input type="text" placeholder="kg × rep"></div>
+        </div>
+      </div>
+      <div class="ex-row-wrap">
+        <div class="ex-name-cell"><div class="ex-name">Low-to-high cable fly</div><div class="ex-sets">2 SET</div></div>
+        <div class="week-cells">
+          <div class="week-box"><label>S1</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S2</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S3</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S4</label><input type="text" placeholder="kg × rep"></div>
+        </div>
+      </div>
+
+      <div class="section-label">Deltoide laterale</div>
+      <div class="ex-row-wrap">
+        <div class="ex-name-cell"><div class="ex-name">Cable lateral raise</div><div class="ex-sets">4 SET</div></div>
+        <div class="week-cells">
+          <div class="week-box"><label>S1</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S2</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S3</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S4</label><input type="text" placeholder="kg × rep"></div>
+        </div>
+      </div>
+      <div class="ex-row-wrap">
+        <div class="ex-name-cell"><div class="ex-name">Machine lateral raise</div><div class="ex-sets">3 SET</div></div>
+        <div class="week-cells">
+          <div class="week-box"><label>S1</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S2</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S3</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S4</label><input type="text" placeholder="kg × rep"></div>
+        </div>
+      </div>
+
+      <div class="section-label">Bicipiti</div>
+      <div class="ex-row-wrap">
+        <div class="ex-name-cell"><div class="ex-name">Incline dumbbell curl</div><div class="ex-sets">3 SET</div></div>
+        <div class="week-cells">
+          <div class="week-box"><label>S1</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S2</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S3</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S4</label><input type="text" placeholder="kg × rep"></div>
+        </div>
+      </div>
+      <div class="ex-row-wrap">
+        <div class="ex-name-cell"><div class="ex-name">Preacher curl</div><div class="ex-sets">2 SET</div></div>
+        <div class="week-cells">
+          <div class="week-box"><label>S1</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S2</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S3</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S4</label><input type="text" placeholder="kg × rep"></div>
+        </div>
+      </div>
+
+      <div class="section-label">Addome</div>
+      <div class="ex-row-wrap">
+        <div class="ex-name-cell"><div class="ex-name">Cable crunch</div><div class="ex-sets">3 SET</div></div>
+        <div class="week-cells">
+          <div class="week-box"><label>S1</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S2</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S3</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S4</label><input type="text" placeholder="kg × rep"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ==================== GIORNO 2 ==================== -->
+<div class="day-panel d2" id="panel2">
+  <div class="day-card d2">
+    <div class="day-header">
+      <div class="day-label">Giorno 2</div>
+      <div class="day-title">Back + Rear Delts</div>
+      <div class="day-focus">&nbsp;</div>
+    </div>
+    <div class="day-body">
+
+      <div class="section-label">Width</div>
+      <div class="ex-row-wrap">
+        <div class="ex-name-cell"><div class="ex-name">Pull-ups / Assisted</div><div class="ex-sets">3 SET</div></div>
+        <div class="week-cells">
+          <div class="week-box"><label>S1</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S2</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S3</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S4</label><input type="text" placeholder="kg × rep"></div>
+        </div>
+      </div>
+      <div class="ex-row-wrap">
+        <div class="ex-name-cell"><div class="ex-name">Lat pulldown</div><div class="ex-sets">3 SET</div></div>
+        <div class="week-cells">
+          <div class="week-box"><label>S1</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S2</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S3</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S4</label><input type="text" placeholder="kg × rep"></div>
+        </div>
+      </div>
+      <div class="ex-row-wrap">
+        <div class="ex-name-cell"><div class="ex-name">Single arm lat row</div><div class="ex-sets">2 SET</div></div>
+        <div class="week-cells">
+          <div class="week-box"><label>S1</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S2</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S3</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S4</label><input type="text" placeholder="kg × rep"></div>
+        </div>
+      </div>
+
+      <div class="section-label">Thickness</div>
+      <div class="ex-row-wrap">
+        <div class="ex-name-cell"><div class="ex-name">Chest supported row</div><div class="ex-sets">3 SET</div></div>
+        <div class="week-cells">
+          <div class="week-box"><label>S1</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S2</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S3</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S4</label><input type="text" placeholder="kg × rep"></div>
+        </div>
+      </div>
+      <div class="ex-row-wrap">
+        <div class="ex-name-cell"><div class="ex-name">Cable row</div><div class="ex-sets">2 SET</div></div>
+        <div class="week-cells">
+          <div class="week-box"><label>S1</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S2</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S3</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S4</label><input type="text" placeholder="kg × rep"></div>
+        </div>
+      </div>
+
+      <div class="section-label">Rear delts</div>
+      <div class="ex-row-wrap">
+        <div class="ex-name-cell"><div class="ex-name">Reverse pec deck</div><div class="ex-sets">4 SET</div></div>
+        <div class="week-cells">
+          <div class="week-box"><label>S1</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S2</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S3</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S4</label><input type="text" placeholder="kg × rep"></div>
+        </div>
+      </div>
+      <div class="ex-row-wrap">
+        <div class="ex-name-cell"><div class="ex-name">Cable rear delt fly</div><div class="ex-sets">3 SET</div></div>
+        <div class="week-cells">
+          <div class="week-box"><label>S1</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S2</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S3</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S4</label><input type="text" placeholder="kg × rep"></div>
+        </div>
+      </div>
+
+      <div class="section-label">Polpacci</div>
+      <div class="ex-row-wrap">
+        <div class="ex-name-cell"><div class="ex-name">Standing calf raise</div><div class="ex-sets">4 SET</div></div>
+        <div class="week-cells">
+          <div class="week-box"><label>S1</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S2</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S3</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S4</label><input type="text" placeholder="kg × rep"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ==================== GIORNO 3 ==================== -->
+<div class="day-panel d3" id="panel3">
+  <div class="day-card d3">
+    <div class="day-header">
+      <div class="day-label">Giorno 3</div>
+      <div class="day-title">Cardio + Core + Mobility</div>
+      <div class="day-focus">&nbsp;</div>
+    </div>
+    <div class="day-body">
+
+      <div class="section-label">Zone 2 Cardio</div>
+      <div class="cardio-pill"><span>Cardio aerobico</span><span class="time">35–45 min</span></div>
+
+      <div class="section-label">Core</div>
+      <div class="ex-row-wrap">
+        <div class="ex-name-cell"><div class="ex-name">Hanging leg raises</div><div class="ex-sets">3 SET</div></div>
+        <div class="week-cells">
+          <div class="week-box"><label>S1</label><input type="text" placeholder="rep"></div>
+          <div class="week-box"><label>S2</label><input type="text" placeholder="rep"></div>
+          <div class="week-box"><label>S3</label><input type="text" placeholder="rep"></div>
+          <div class="week-box"><label>S4</label><input type="text" placeholder="rep"></div>
+        </div>
+      </div>
+      <div class="ex-row-wrap">
+        <div class="ex-name-cell"><div class="ex-name">Ab wheel</div><div class="ex-sets">3 SET</div></div>
+        <div class="week-cells">
+          <div class="week-box"><label>S1</label><input type="text" placeholder="rep"></div>
+          <div class="week-box"><label>S2</label><input type="text" placeholder="rep"></div>
+          <div class="week-box"><label>S3</label><input type="text" placeholder="rep"></div>
+          <div class="week-box"><label>S4</label><input type="text" placeholder="rep"></div>
+        </div>
+      </div>
+      <div class="ex-row-wrap">
+        <div class="ex-name-cell"><div class="ex-name">Weighted plank</div><div class="ex-sets">2 SET</div></div>
+        <div class="week-cells">
+          <div class="week-box"><label>S1</label><input type="text" placeholder="kg × sec"></div>
+          <div class="week-box"><label>S2</label><input type="text" placeholder="kg × sec"></div>
+          <div class="week-box"><label>S3</label><input type="text" placeholder="kg × sec"></div>
+          <div class="week-box"><label>S4</label><input type="text" placeholder="kg × sec"></div>
+        </div>
+      </div>
+
+      <div class="section-label">Mobilità — 15–20 min</div>
+      <ul class="bullet-list">
+        <li>Anche</li><li>Toracica</li><li>Spalle</li><li>Caviglie</li>
+      </ul>
+
+    </div>
+  </div>
+</div>
+
+<!-- ==================== GIORNO 4 ==================== -->
+<div class="day-panel d4" id="panel4">
+  <div class="day-card d4">
+    <div class="day-header">
+      <div class="day-label">Giorno 4</div>
+      <div class="day-title">Legs</div>
+      <div class="day-focus">&nbsp;</div>
+    </div>
+    <div class="day-body">
+
+      <div class="section-label">Warm-up dinamico — 5–10 min</div>
+      <ul class="bullet-list">
+        <li>Leg swings</li><li>Hip openers</li><li>Ankle mobility</li><li>Skips</li><li>Glute activation</li>
+      </ul>
+
+      <div class="section-label">Polpacci</div>
+      <div class="ex-row-wrap">
+        <div class="ex-name-cell"><div class="ex-name">Seated calf raise</div><div class="ex-sets">4 SET</div></div>
+        <div class="week-cells">
+          <div class="week-box"><label>S1</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S2</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S3</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S4</label><input type="text" placeholder="kg × rep"></div>
+        </div>
+      </div>
+
+      <div class="section-label">Esplosività & Forza</div>
+      <div class="ex-row-wrap">
+        <div class="ex-name-cell"><div class="ex-name">Box Jump</div><div class="ex-sets">3 SET · 3–5 REP</div></div>
+        <div class="week-cells">
+          <div class="week-box"><label>S1</label><input type="text" placeholder="cm / rep"></div>
+          <div class="week-box"><label>S2</label><input type="text" placeholder="cm / rep"></div>
+          <div class="week-box"><label>S3</label><input type="text" placeholder="cm / rep"></div>
+          <div class="week-box"><label>S4</label><input type="text" placeholder="cm / rep"></div>
+        </div>
+      </div>
+      <div class="ex-row-wrap">
+        <div class="ex-name-cell"><div class="ex-name">Bulgarian Split Squat</div><div class="ex-sets">4 SET</div></div>
+        <div class="week-cells">
+          <div class="week-box"><label>S1</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S2</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S3</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S4</label><input type="text" placeholder="kg × rep"></div>
+        </div>
+      </div>
+      <div class="ex-row-wrap">
+        <div class="ex-name-cell"><div class="ex-name">Romanian Deadlift</div><div class="ex-sets">4 SET</div></div>
+        <div class="week-cells">
+          <div class="week-box"><label>S1</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S2</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S3</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S4</label><input type="text" placeholder="kg × rep"></div>
+        </div>
+      </div>
+      <div class="ex-row-wrap">
+        <div class="ex-name-cell"><div class="ex-name">Step-up esplosivi</div><div class="ex-sets">3 SET</div></div>
+        <div class="week-cells">
+          <div class="week-box"><label>S1</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S2</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S3</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S4</label><input type="text" placeholder="kg × rep"></div>
+        </div>
+      </div>
+      <div class="ex-row-wrap">
+        <div class="ex-name-cell"><div class="ex-name">Seated leg curl</div><div class="ex-sets">3 SET</div></div>
+        <div class="week-cells">
+          <div class="week-box"><label>S1</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S2</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S3</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S4</label><input type="text" placeholder="kg × rep"></div>
+        </div>
+      </div>
+      <div class="ex-row-wrap">
+        <div class="ex-name-cell"><div class="ex-name">Tibialis raises</div><div class="ex-sets">—</div></div>
+        <div class="week-cells">
+          <div class="week-box"><label>S1</label><input type="text" placeholder="rep"></div>
+          <div class="week-box"><label>S2</label><input type="text" placeholder="rep"></div>
+          <div class="week-box"><label>S3</label><input type="text" placeholder="rep"></div>
+          <div class="week-box"><label>S4</label><input type="text" placeholder="rep"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ==================== GIORNO 5 ==================== -->
+<div class="day-panel d5" id="panel5">
+  <div class="day-card d5">
+    <div class="day-header">
+      <div class="day-label">Giorno 5</div>
+      <div class="day-title">Upper B</div>
+      <div class="day-focus">V-Taper Focus</div>
+    </div>
+    <div class="day-body">
+
+      <div class="section-label">Petto</div>
+      <div class="ex-row-wrap">
+        <div class="ex-name-cell"><div class="ex-name">Incline machine press</div><div class="ex-sets">3 SET</div></div>
+        <div class="week-cells">
+          <div class="week-box"><label>S1</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S2</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S3</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S4</label><input type="text" placeholder="kg × rep"></div>
+        </div>
+      </div>
+      <div class="ex-row-wrap">
+        <div class="ex-name-cell"><div class="ex-name">Cable fly stretch biased</div><div class="ex-sets">2 SET</div></div>
+        <div class="week-cells">
+          <div class="week-box"><label>S1</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S2</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S3</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S4</label><input type="text" placeholder="kg × rep"></div>
+        </div>
+      </div>
+
+      <div class="section-label">Schiena</div>
+      <div class="ex-row-wrap">
+        <div class="ex-name-cell"><div class="ex-name">Wide grip pulldown</div><div class="ex-sets">3 SET</div></div>
+        <div class="week-cells">
+          <div class="week-box"><label>S1</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S2</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S3</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S4</label><input type="text" placeholder="kg × rep"></div>
+        </div>
+      </div>
+      <div class="ex-row-wrap">
+        <div class="ex-name-cell"><div class="ex-name">Neutral grip row</div><div class="ex-sets">3 SET</div></div>
+        <div class="week-cells">
+          <div class="week-box"><label>S1</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S2</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S3</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S4</label><input type="text" placeholder="kg × rep"></div>
+        </div>
+      </div>
+
+      <div class="section-label">Deltoide laterale</div>
+      <div class="ex-row-wrap">
+        <div class="ex-name-cell"><div class="ex-name">Dumbbell lateral raise</div><div class="ex-sets">3 SET</div></div>
+        <div class="week-cells">
+          <div class="week-box"><label>S1</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S2</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S3</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S4</label><input type="text" placeholder="kg × rep"></div>
+        </div>
+      </div>
+      <div class="ex-row-wrap">
+        <div class="ex-name-cell"><div class="ex-name">Partial lateral raises</div><div class="ex-sets">2 SET</div></div>
+        <div class="week-cells">
+          <div class="week-box"><label>S1</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S2</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S3</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S4</label><input type="text" placeholder="kg × rep"></div>
+        </div>
+      </div>
+
+      <div class="section-label">Rear delts</div>
+      <div class="ex-row-wrap">
+        <div class="ex-name-cell"><div class="ex-name">Rear delt row</div><div class="ex-sets">3 SET</div></div>
+        <div class="week-cells">
+          <div class="week-box"><label>S1</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S2</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S3</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S4</label><input type="text" placeholder="kg × rep"></div>
+        </div>
+      </div>
+
+      <div class="section-label">Braccia</div>
+      <div class="ex-row-wrap">
+        <div class="ex-name-cell"><div class="ex-name">Hammer curl</div><div class="ex-sets">2 SET</div></div>
+        <div class="week-cells">
+          <div class="week-box"><label>S1</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S2</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S3</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S4</label><input type="text" placeholder="kg × rep"></div>
+        </div>
+      </div>
+      <div class="ex-row-wrap">
+        <div class="ex-name-cell"><div class="ex-name">Rope pushdown</div><div class="ex-sets">3 SET</div></div>
+        <div class="week-cells">
+          <div class="week-box"><label>S1</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S2</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S3</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S4</label><input type="text" placeholder="kg × rep"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ==================== GIORNO 6 ==================== -->
+<div class="day-panel d6" id="panel6">
+  <div class="day-card d6">
+    <div class="day-header">
+      <div class="day-label">Giorno 6</div>
+      <div class="day-title">Arms + Shoulders</div>
+      <div class="day-focus">Specialization</div>
+    </div>
+    <div class="day-body">
+
+      <div class="section-label">Deltoide laterale</div>
+      <div class="ex-row-wrap">
+        <div class="ex-name-cell"><div class="ex-name">Cable lateral raise</div><div class="ex-sets">4 SET</div></div>
+        <div class="week-cells">
+          <div class="week-box"><label>S1</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S2</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S3</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S4</label><input type="text" placeholder="kg × rep"></div>
+        </div>
+      </div>
+      <div class="ex-row-wrap">
+        <div class="ex-name-cell"><div class="ex-name">Machine lateral raise</div><div class="ex-sets">3 SET</div></div>
+        <div class="week-cells">
+          <div class="week-box"><label>S1</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S2</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S3</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S4</label><input type="text" placeholder="kg × rep"></div>
+        </div>
+      </div>
+
+      <div class="section-label">Rear delts</div>
+      <div class="ex-row-wrap">
+        <div class="ex-name-cell"><div class="ex-name">Reverse pec deck</div><div class="ex-sets">3 SET</div></div>
+        <div class="week-cells">
+          <div class="week-box"><label>S1</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S2</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S3</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S4</label><input type="text" placeholder="kg × rep"></div>
+        </div>
+      </div>
+
+      <div class="section-label">Tricipiti</div>
+      <div class="ex-row-wrap">
+        <div class="ex-name-cell"><div class="ex-name">Overhead cable extension</div><div class="ex-sets">3 SET</div></div>
+        <div class="week-cells">
+          <div class="week-box"><label>S1</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S2</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S3</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S4</label><input type="text" placeholder="kg × rep"></div>
+        </div>
+      </div>
+      <div class="ex-row-wrap">
+        <div class="ex-name-cell"><div class="ex-name">Skullcrusher</div><div class="ex-sets">2 SET</div></div>
+        <div class="week-cells">
+          <div class="week-box"><label>S1</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S2</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S3</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S4</label><input type="text" placeholder="kg × rep"></div>
+        </div>
+      </div>
+      <div class="ex-row-wrap">
+        <div class="ex-name-cell"><div class="ex-name">Pushdown</div><div class="ex-sets">2 SET</div></div>
+        <div class="week-cells">
+          <div class="week-box"><label>S1</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S2</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S3</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S4</label><input type="text" placeholder="kg × rep"></div>
+        </div>
+      </div>
+
+      <div class="section-label">Bicipiti</div>
+      <div class="ex-row-wrap">
+        <div class="ex-name-cell"><div class="ex-name">Bayesian curl</div><div class="ex-sets">3 SET</div></div>
+        <div class="week-cells">
+          <div class="week-box"><label>S1</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S2</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S3</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S4</label><input type="text" placeholder="kg × rep"></div>
+        </div>
+      </div>
+      <div class="ex-row-wrap">
+        <div class="ex-name-cell"><div class="ex-name">Preacher curl</div><div class="ex-sets">2 SET</div></div>
+        <div class="week-cells">
+          <div class="week-box"><label>S1</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S2</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S3</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S4</label><input type="text" placeholder="kg × rep"></div>
+        </div>
+      </div>
+
+      <div class="section-label">Addome</div>
+      <div class="ex-row-wrap">
+        <div class="ex-name-cell"><div class="ex-name">Cable crunch</div><div class="ex-sets">2 SET</div></div>
+        <div class="week-cells">
+          <div class="week-box"><label>S1</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S2</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S3</label><input type="text" placeholder="kg × rep"></div>
+          <div class="week-box"><label>S4</label><input type="text" placeholder="kg × rep"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ==================== GIORNO 7 ==================== -->
+<div class="day-panel d7" id="panel7">
+  <div class="day-card d7">
+    <div class="day-header">
+      <div class="day-label">Giorno 7</div>
+      <div class="day-title">Rest / Active Recovery</div>
+      <div class="day-focus">&nbsp;</div>
+    </div>
+    <div class="day-body">
+      <div class="section-label">Attività consigliate</div>
+      <ul class="bullet-list" style="margin-top: 6px;">
+        <li>Passeggiata</li>
+        <li>Stretching</li>
+        <li>Mobilità</li>
+        <li>Cardio leggero (opzionale)</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<script>
+  function showDay(n) {
+    document.querySelectorAll('.day-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('panel' + n).classList.add('active');
+    document.getElementById('tab' + n).classList.add('active');
+  }
+
+  // Persist data in localStorage
+  function saveData() {
+    const data = {};
+    document.querySelectorAll('input[type=text]').forEach((inp, i) => {
+      if (inp.value) data[i] = inp.value;
+    });
+    localStorage.setItem('scheda_carichi', JSON.stringify(data));
+  }
+  function loadData() {
+    const saved = localStorage.getItem('scheda_carichi');
+    if (!saved) return;
+    const data = JSON.parse(saved);
+    document.querySelectorAll('input[type=text]').forEach((inp, i) => {
+      if (data[i]) inp.value = data[i];
+    });
+  }
+  document.addEventListener('input', saveData);
+  window.addEventListener('load', loadData);
+</script>
+</body>
+</html>
